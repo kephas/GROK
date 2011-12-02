@@ -7,7 +7,10 @@
 ;Expression régulière :
 (ql:quickload "cl-ppcre")
 
-(in-package :hunchentoot :cl-who :cl-ppcre)
+(defpackage :webserver
+  (:use :cl :hunchentoot :cl-who :cl-ppcre))
+
+(in-package :webserver)
 
 ;Fonction générique qui transforme une alist en hash-table :
 (defun alist->hashtable (al)
@@ -67,6 +70,9 @@
     output))
 
 
+(defvar *global-args* (list (list "dev-name" "eXenon")))
+(defvar *app-dir* "./")
+
 ;Charge le fichier *home*/html/name.html et le modifie
 ;grace aux balises <lisp> insérées dans le html. Les balises
 ;suivantes sont à disposition :
@@ -79,13 +85,13 @@
 ;
 (defun load-html (name args)
   (let* ((output "")
-	 (real-args (concatenate 'list args global-args request-args))
+	 (real-args (concatenate 'list args *global-args*))
 	 (h (alist->hashtable real-args)))
 
     (print h)
 	
     ;On crée le string contenant le HTML :
-    (with-open-file (stream (concatenate 'string *home* "html/" name ".html"))
+    (with-open-file (stream (concatenate 'string *app-dir* "html/" name ".html"))
       (do ((line (read-line stream nil)
 		 (read-line stream nil)))
 	  ((null line))
@@ -152,8 +158,6 @@
              (mismatch (mismatch (script-name request) prefix
                                  :test #'char=)))
 	(print (script-name request))
-	;Craaade :
-	(setq request-args (get-parameters*))
         (when (or (null mismatch)
                   (>= mismatch (length prefix)))
           (string->handler (string-upcase (subseq function (1- (length prefix))))
@@ -161,8 +165,8 @@
       
 
 ;Le dispatcher pour tout :
-(push (create-package-dispatcher "/") *dispatch-table*)
-
+(push (create-package-dispatcher "/w/") *dispatch-table*)
+(push (create-static-file-dispatcher-and-handler "/data/" (make-pathname :defaults (format nil "~aweb-data/" *app-dir*))) *dispatch-table*)
 ;
 ;  == FIN ==
 ;
@@ -175,20 +179,14 @@
 ; == PARAMETRAGE ==
 ;
 
-(defvar *home* "~/lisp/simple-server/")
-
 ;Définition d'argument valables sur toutes les fenêtres :
-(defvar global-args (list (list "dev-name" "eXenon")))
 (defun add-global-arg (key val)
-  (setq global-args (cons (list key val) global-args)))
+  (push (list key val) *global-args*))
 
 (add-global-arg "menu" (list "Acceuil" "Recherche" "Contact"))
 (add-global-arg "for" (list "item1" "item2" "item3"))
 
 
-;Définition d'une alist contenant les arguments de la dernière requete :
-;  C'est sale, certes, mais ca marche ^^!
-(defvar request-args nil)
 
 (print (load-html "main" nil))
 
@@ -201,4 +199,4 @@
 (defun /entry ()
   (load-html "entry" nil))
 
-(start (make-instance 'acceptor :port 8888))
+(defvar *webserver* (make-instance 'acceptor :port 4242))

@@ -1,0 +1,22 @@
+html{
+   font-size: 100%;
+   }
+body{
+color:black;
+background-color:white;
+background-image:url(fond.jpg);
+background-repeat:repeat;
+}
+
+.facebook{
+   text-align: center;
+}
+.gift2{
+   text-align: center;
+}
+h1{
+   color:blue;
+   font-family: Arial, sans-serif;
+   text-align: center;
+   font-size: 30px;
+   }

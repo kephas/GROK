@@ -1,8 +1,9 @@
 ;First of all : you lost the game
 ;dependences : drakma cl-ppcre
 
+
 ;fonction déterminant une sélection à partir d'un genre
-(defun get-titles (genre  max)
+(defun get-titles (genre max)
   (cl-ppcre:all-matches-as-strings 
    (format nil "<a href=\"/title/.{0,~a}\">.*</a>" max) 
    (drakma:http-request (concatenate 'string "http://www.imdb.com/genre/" genre))))
@@ -64,10 +65,15 @@ is replaced with replacement."
 	     classement)
     (get-titles best-key  20)))
 
-(defun top-no-collision (film-list)
+;A partir d'une list de film, crache une liste de titre en rapport avec le genre des fils envoyés
+;(imdb-request (list film1 film2 ...))
+(defun imdb-request (film-list)
   (let ((top nil))
     (dolist (film (select-mf film-list))
       (let ((nom-film (subseq film 28 (-(length film) 4))))
 	(if (not (find nom-film film-list :test #'equal)) 
 	    (push nom-film top))))
     (reverse top)))
+
+(defun amazon-request (film, foo)
+  (concatenate 'string (concatenate 'string "http://www.amazon.fr/s/ref=nb_sb_noss?__mk_fr_FR=%C5M%C5Z%D5%D1&url=search-alias%3Daps&field-keywords=" (replace-all film " " "+")) "&x=0&y=0"))
